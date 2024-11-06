@@ -1,14 +1,17 @@
+// src/components/ProfileIcon.js
 import React from 'react';
 
-const ProfileIcon = () => {
+const ProfileIcon = ({ firstName, lastName, profileImageUrl }) => {
   return (
     <div className="flex items-center">
       <img
-        src="https://via.placeholder.com/40"
+        src={profileImageUrl || 'https://via.placeholder.com/40'} // Muestra una imagen por defecto si no hay imagen de perfil
         alt="Perfil"
         className="rounded-full h-10 w-10"
       />
-      <span className="ml-2 text-gray-600">Jackson Pierce</span>
+      <span className="ml-2 text-gray-600">
+        {firstName} {lastName}
+      </span>
     </div>
   );
 };

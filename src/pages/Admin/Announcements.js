@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../../firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { db, storage, auth } from '../../firebase';
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore'; // Añadido `getDoc`
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { FaEdit, FaTrash, FaLink, FaImage, FaFile } from 'react-icons/fa';
+import ProfileIcon from '../../components/ProfileIcon'; // Asegúrate de tener este componente
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userInfo, setUserInfo] = useState({
+    firstName: '',
+    lastName: '',
+    profileImageUrl: '',
+  });
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: '',
     description: '',
@@ -27,10 +35,36 @@ const Announcements = () => {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       const querySnapshot = await getDocs(collection(db, 'announcements'));
-      setAnnouncements(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const fetchedAnnouncements = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setAnnouncements(fetchedAnnouncements);
+      setFilteredAnnouncements(fetchedAnnouncements);
     };
     fetchAnnouncements();
+
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserInfo({
+            firstName: userData.firstName || 'Usuario',
+            lastName: userData.lastName || '',
+            profileImageUrl: userData.profileImageUrl || 'https://via.placeholder.com/40',
+          });
+        }
+      }
+    });
+
+    return () => unsubscribeAuth();
   }, []);
+
+  useEffect(() => {
+    setFilteredAnnouncements(
+      announcements.filter(announcement =>
+        announcement.title.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, announcements]);
 
   const handleCreateAnnouncement = async () => {
     let attachmentUrls = [];
@@ -64,7 +98,9 @@ const Announcements = () => {
     };
     
     const docRef = await addDoc(collection(db, 'announcements'), newAnnouncementData);
-    setAnnouncements([...announcements, { id: docRef.id, ...newAnnouncementData }]);
+    const updatedAnnouncements = [...announcements, { id: docRef.id, ...newAnnouncementData }];
+    setAnnouncements(updatedAnnouncements);
+    setFilteredAnnouncements(updatedAnnouncements);
     setShowModal(false);
     resetAnnouncementForm();
   };
@@ -103,16 +139,20 @@ const Announcements = () => {
     const announcementRef = doc(db, 'announcements', id);
     await updateDoc(announcementRef, updatedAnnouncement);
 
-    setAnnouncements(announcements.map(announcement => 
+    const updatedAnnouncements = announcements.map(announcement => 
       announcement.id === id ? { ...updatedAnnouncement, id } : announcement
-    ));
+    );
+    setAnnouncements(updatedAnnouncements);
+    setFilteredAnnouncements(updatedAnnouncements);
     setShowModal(false);
     resetAnnouncementForm();
   };
 
   const handleDeleteAnnouncement = async (id) => {
     await deleteDoc(doc(db, 'announcements', id));
-    setAnnouncements(announcements.filter(announcement => announcement.id !== id));
+    const updatedAnnouncements = announcements.filter(announcement => announcement.id !== id);
+    setAnnouncements(updatedAnnouncements);
+    setFilteredAnnouncements(updatedAnnouncements);
   };
 
   const resetAnnouncementForm = () => {
@@ -173,19 +213,35 @@ const Announcements = () => {
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-4">
+        <input
+          type="text"
+          placeholder="Buscar anuncios..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border rounded-lg px-4 py-2 w-1/3"
+        />
+        <div className="flex items-center space-x-4">
+          <ProfileIcon 
+            firstName={userInfo.firstName} 
+            lastName={userInfo.lastName} 
+            profileImageUrl={userInfo.profileImageUrl} 
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Gestión de Anuncios</h2>
         <button
-  className="bg-blue-600 text-white py-2 px-4 rounded flex items-center space-x-2"
-  onClick={() => openModal()}
->
-  <FaEdit className="mr-2" /> 
-  <span>Crear Nuevo Anuncio</span>
-</button>
-
+          className="bg-blue-600 text-white py-2 px-4 rounded flex items-center space-x-2"
+          onClick={() => openModal()}
+        >
+          <FaEdit className="mr-2" /> 
+          <span>Crear Nuevo Anuncio</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {announcements.map((announcement, index) => (
+        {filteredAnnouncements.map((announcement, index) => (
           <div key={announcement.id} className="bg-white rounded-lg shadow-lg p-4 cursor-pointer" onClick={() => openDetailModal(announcement)}>
             {announcement.coverImageUrl && (
               <img src={announcement.coverImageUrl} alt="Cover" className="w-full h-32 object-cover rounded mb-2" />

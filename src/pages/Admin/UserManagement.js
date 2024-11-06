@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db, storage, auth } from '../../firebase';
 import { UserIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/solid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import ProfileIcon from '../../components/ProfileIcon'; // Asegúrate de tener este componente
 
 const countries = [
   { value: 'MX', label: 'México' },
@@ -13,15 +14,22 @@ const countries = [
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedRole, setSelectedRole] = useState('user');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentUserInfo, setCurrentUserInfo] = useState({
+    firstName: '',
+    lastName: '',
+    profileImageUrl: '',
+  });
   const [newUser, setNewUser] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    password: '', // Campo de contraseña
+    password: '',
     role: 'user',
     location: null,
     tags: [],
@@ -42,16 +50,42 @@ const UserManagement = () => {
         location: countries.find((c) => c.value === doc.data().location) || null,
       }));
       setUsers(userList);
+      setFilteredUsers(userList);
     };
     fetchUsers();
+
+    // Obtener la información del usuario autenticado
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setCurrentUserInfo({
+            firstName: userData.firstName || 'Usuario',
+            lastName: userData.lastName || '',
+            profileImageUrl: userData.profileImageUrl || 'https://via.placeholder.com/40',
+          });
+        }
+      }
+    });
   }, []);
 
-  const filteredUsers = users.filter((user) => {
-    if (selectedRole === 'user') return user.role === 'user';
-    if (selectedRole === 'moderador') return user.role === 'moderador';
-    if (selectedRole === 'admin') return user.role === 'admin';
-    return false;
-  });
+  useEffect(() => {
+    const filtered = users.filter((user) => {
+      const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+      const matchesSearch = `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesRole && matchesSearch;
+    });
+    setFilteredUsers(filtered);
+  }, [searchTerm, selectedRole, users]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleRoleFilterChange = (role) => {
+    setSelectedRole(role);
+  };
 
   const handleAddUser = async () => {
     if (!newUser.email.endsWith('@ipsumtechnology.mx') && !newUser.email.endsWith('@ipsumtechnology.co')) {
@@ -60,7 +94,6 @@ const UserManagement = () => {
     }
 
     try {
-      // Crear usuario en Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
       const user = userCredential.user;
 
@@ -80,17 +113,12 @@ const UserManagement = () => {
         tags: newUser.tags,
         profileImageUrl,
         description: newUser.description,
-        uid: user.uid, // Guardamos el UID para referencia
+        uid: user.uid,
       };
 
-      // Guardar datos adicionales en Firestore
-      console.log("Intentando guardar en Firestore:", newUserData);
       await addDoc(collection(db, 'users'), newUserData);
-      console.log("Datos guardados en Firestore");
 
       setUsers([...users, { id: user.uid, ...newUserData, location: newUser.location }]);
-
-      // Resetear campos
       resetNewUser();
       setShowAddUserModal(false);
     } catch (error) {
@@ -104,7 +132,7 @@ const UserManagement = () => {
       firstName: '',
       lastName: '',
       email: '',
-      password: '', // Resetear contraseña
+      password: '',
       role: 'user',
       location: null,
       tags: [],
@@ -122,9 +150,6 @@ const UserManagement = () => {
   };
 
   const handleRoleChange = async (userId, newRole) => {
-    const user = users.find((u) => u.id === userId);
-    if (user.role === 'principal') return;
-
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { role: newRole });
     setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)));
@@ -168,31 +193,10 @@ const UserManagement = () => {
     }
   };
 
-  const handleTagAdd = (e) => {
-    if (e.key === 'Enter' && newUser.tagInput.trim() !== '') {
-      setNewUser({
-        ...newUser,
-        tags: [...newUser.tags, newUser.tagInput.trim()],
-        tagInput: '',
-      });
-    }
-  };
-
-  const handleEditTagAdd = (e) => {
-    if (e.key === 'Enter' && editingUser.tagInput.trim() !== '') {
-      setEditingUser({
-        ...editingUser,
-        tags: [...editingUser.tags, editingUser.tagInput.trim()],
-        tagInput: '',
-      });
-    }
-  };
-
-  const handleTagRemove = (tagToRemove) => {
-    setNewUser({
-      ...newUser,
-      tags: newUser.tags.filter((tag) => tag !== tagToRemove),
-    });
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setProfileImage(file);
+    setProfileImagePreview(URL.createObjectURL(file));
   };
 
   const handleEditTagRemove = (tagToRemove) => {
@@ -202,14 +206,26 @@ const UserManagement = () => {
     });
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setProfileImage(file);
-    setProfileImagePreview(URL.createObjectURL(file));
-  };
-
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
+      {/* Barra de búsqueda y perfil */}
+      <div className="flex justify-between items-center mb-6">
+        <input
+          type="text"
+          placeholder="Buscar en el directorio..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="border rounded-lg px-4 py-2 w-1/3"
+        />
+        <div className="flex items-center space-x-4">
+          <ProfileIcon 
+            firstName={currentUserInfo.firstName} 
+            lastName={currentUserInfo.lastName} 
+            profileImageUrl={currentUserInfo.profileImageUrl} 
+          />
+        </div>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Directorio</h2>
         <button
@@ -222,13 +238,13 @@ const UserManagement = () => {
       </div>
 
       <div className="flex space-x-4 mb-4">
-        {['user', 'moderador', 'admin'].map((role) => (
+        {['all', 'user', 'moderador', 'admin'].map((role) => (
           <button
             key={role}
             className={`px-4 py-2 rounded ${selectedRole === role ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-            onClick={() => setSelectedRole(role)}
+            onClick={() => handleRoleFilterChange(role)}
           >
-            {role === 'user' ? 'Usuarios' : role === 'moderador' ? 'Moderadores' : 'Admin'}
+            {role === 'all' ? 'Todos' : role === 'user' ? 'Usuarios' : role === 'moderador' ? 'Moderadores' : 'Administradores'}
           </button>
         ))}
       </div>
@@ -256,7 +272,6 @@ const UserManagement = () => {
                   value={user.role}
                   onChange={(e) => handleRoleChange(user.id, e.target.value)}
                   className="border p-1 rounded"
-                  disabled={user.role === 'principal'}
                 >
                   <option value="user">Usuario</option>
                   <option value="moderador">Moderador</option>
@@ -272,16 +287,15 @@ const UserManagement = () => {
                 <button onClick={() => openEditUserModal(user)} className="text-blue-600 hover:text-blue-800">
                   <PencilIcon className="h-5 w-5" />
                 </button>
-                {user.role !== 'principal' && (
-                  <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-800">
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                )}
+                <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-800">
+                  <TrashIcon className="h-5 w-5" />
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
 
       {/* Modal de Agregar Usuario */}
       {showAddUserModal && (
@@ -371,7 +385,7 @@ const UserManagement = () => {
             <button
               onClick={() => {
                 setShowAddUserModal(false);
-                resetNewUser(); // Limpiar los campos al cancelar
+                resetNewUser();
               }}
               className="bg-gray-300 text-gray-700 py-2 px-4 rounded mt-2 w-full hover:bg-gray-400"
             >
@@ -425,7 +439,15 @@ const UserManagement = () => {
               placeholder="Añadir etiqueta"
               value={editingUser.tagInput || ''}
               onChange={(e) => setEditingUser({ ...editingUser, tagInput: e.target.value })}
-              onKeyDown={handleEditTagAdd}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && editingUser.tagInput.trim() !== '') {
+                  setEditingUser({
+                    ...editingUser,
+                    tags: [...editingUser.tags, editingUser.tagInput.trim()],
+                    tagInput: '',
+                  });
+                }
+              }}
               className="border p-2 w-full mb-2 rounded"
             />
             <div className="flex flex-wrap mb-2">
@@ -472,3 +494,4 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+

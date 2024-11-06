@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../../firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { db, storage, auth } from '../../firebase';
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { onAuthStateChanged } from 'firebase/auth';
+import ProfileIcon from '../../components/ProfileIcon';
 import { FiArrowLeft, FiBook } from 'react-icons/fi';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [isEditingLesson, setIsEditingLesson] = useState(false);
   const [editingLessonIndex, setEditingLessonIndex] = useState(null);
+  const [userInfo, setUserInfo] = useState({ firstName: '', lastName: '', profileImageUrl: '' });
   const [newCourse, setNewCourse] = useState({
     title: '',
     shortDescription: '',
@@ -38,12 +43,42 @@ const CourseManagement = () => {
   const [thumbnail, setThumbnail] = useState(null);
 
   useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setUserInfo({
+            firstName: userDoc.data().firstName || 'Usuario',
+            lastName: userDoc.data().lastName || '',
+            profileImageUrl: userDoc.data().profileImageUrl || '',
+          });
+        }
+      }
+    });
+    
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
     const fetchCourses = async () => {
       const querySnapshot = await getDocs(collection(db, 'courses'));
-      setCourses(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const courseList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setCourses(courseList);
+      setFilteredCourses(courseList);
     };
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    const filtered = courses.filter((course) =>
+      course.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredCourses(filtered);
+  }, [searchTerm, courses]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   const handleThumbnailUpload = async (file, path) => {
     const storageRef = ref(storage, path);
@@ -89,6 +124,22 @@ const CourseManagement = () => {
     if (selectedCourse?.id === courseId) setSelectedCourse(null);
   };
 
+  const resetNewCourse = () => {
+    setNewCourse({
+      title: '',
+      shortDescription: '',
+      about: '',
+      category: '',
+      visibility: 'all',
+      allowedUsers: [],
+      thumbnailUrl: null,
+      lessons: [],
+      durationHours: 0,
+      durationMinutes: 0,
+    });
+    setThumbnail(null);
+  };
+
   const handleAddOrUpdateLesson = async () => {
     let lessonThumbnailUrl = newLesson.thumbnailUrl;
 
@@ -124,6 +175,20 @@ const CourseManagement = () => {
     setSelectedCourse({ ...selectedCourse, lessons: updatedLessons });
   };
 
+  const resetNewLesson = () => {
+    setNewLesson({
+      title: '',
+      shortDescription: '',
+      about: '',
+      thumbnail: null,
+      thumbnailUrl: null,
+      resources: [],
+      durationHours: 0,
+      durationMinutes: 0,
+      step: 1,
+    });
+  };
+
   const handleEditLesson = (index) => {
     const lesson = selectedCourse.lessons[index];
     setNewLesson({ ...lesson });
@@ -143,36 +208,6 @@ const CourseManagement = () => {
     ));
   };
 
-  const resetNewCourse = () => {
-    setNewCourse({
-      title: '',
-      shortDescription: '',
-      about: '',
-      category: '',
-      visibility: 'all',
-      allowedUsers: [],
-      thumbnailUrl: null,
-      lessons: [],
-      durationHours: 0,
-      durationMinutes: 0,
-    });
-    setThumbnail(null);
-  };
-
-  const resetNewLesson = () => {
-    setNewLesson({
-      title: '',
-      shortDescription: '',
-      about: '',
-      thumbnail: null,
-      thumbnailUrl: null,
-      resources: [],
-      durationHours: 0,
-      durationMinutes: 0,
-      step: 1,
-    });
-  };
-
   const handleThumbnailPreview = (e) => {
     const file = e.target.files[0];
     setThumbnail(file);
@@ -186,6 +221,23 @@ const CourseManagement = () => {
 
   return (
     <div className="p-8">
+      <div className="flex justify-between items-center mb-4">
+        <input
+          type="text"
+          placeholder="Buscar cursos..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="border rounded-lg px-4 py-2 w-1/3"
+        />
+        <div className="flex items-center space-x-4">
+          <ProfileIcon 
+            firstName={userInfo.firstName} 
+            lastName={userInfo.lastName} 
+            profileImageUrl={userInfo.profileImageUrl} 
+          />
+        </div>
+      </div>
+
       {!selectedCourse ? (
         <>
           <div className="flex justify-between items-center mb-4">
@@ -201,7 +253,7 @@ const CourseManagement = () => {
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {courses.map(course => (
+            {filteredCourses.map(course => (
               <div key={course.id} className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold">{course.title}</h3>
                 <p className="text-sm text-gray-600">{course.category}</p>
@@ -239,6 +291,7 @@ const CourseManagement = () => {
           </div>
         </>
       ) : (
+
         <div className="grid grid-cols-3 gap-8">
           <div className="col-span-2">
             <button onClick={() => setSelectedCourse(null)} className="flex items-center text-blue-500 mb-4">
