@@ -3,7 +3,7 @@
 Esta aplicación web permite a los usuarios acceder a una variedad de cursos en línea, gestionar su progreso y obtener certificados. Está desarrollada usando React, Node.js, Firebase y Tailwind CSS.
 
 
-# Tecnologías Usadas
+## Tecnologías Usadas
 
 - **React**: Para la interfaz de usuario.
 - **Node.js**: Para el backend (a implementar si es necesario).
