@@ -134,7 +134,6 @@ const ProfileSetupPage = () => {
     <div className="flex min-h-screen bg-gray-100">
       {/* Barra azul izquierda */}
       <div className="w-64 bg-[#1e3a8a] flex flex-col items-start px-6 py-8">
-        <img src={ipLogo} alt="Logo" className="w-14 h-14 mb-4" style={{ textAlign: 'left' }} />
         <h1 className="text-white text-[1.875rem] font-bold leading-[2.25rem]">
           Ipsum<br />Learning
         </h1>

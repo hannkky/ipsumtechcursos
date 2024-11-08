@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
+import * as XLSX from 'xlsx';
+import { collection, getDocs, setDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db, storage, auth } from '../../firebase';
 import { UserIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/solid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import ProfileIcon from '../../components/ProfileIcon'; // Asegúrate de tener este componente
+import ProfileIcon from '../../components/ProfileIcon';
 
 const countries = [
   { value: 'MX', label: 'México' },
@@ -54,7 +55,6 @@ const UserManagement = () => {
     };
     fetchUsers();
 
-    // Obtener la información del usuario autenticado
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -79,12 +79,17 @@ const UserManagement = () => {
     setFilteredUsers(filtered);
   }, [searchTerm, selectedRole, users]);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleRoleFilterChange = (role) => {
-    setSelectedRole(role);
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(users.map((user) => ({
+      Nombre: `${user.firstName} ${user.lastName}`,
+      Rol: user.role,
+      Email: user.email,
+      Ubicación: user.location ? user.location.label : 'No especificada',
+      Etiquetas: user.tags ? user.tags.join(', ') : 'Sin etiquetas',
+    })));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Usuarios');
+    XLSX.writeFile(workbook, 'usuarios_registrados.xlsx');
   };
 
   const handleAddUser = async () => {
@@ -92,18 +97,18 @@ const UserManagement = () => {
       alert('El correo debe tener una terminación @ipsumtechnology.mx o @ipsumtechnology.co');
       return;
     }
-
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
       const user = userCredential.user;
-
+  
       let profileImageUrl = null;
       if (profileImage) {
         const storageRef = ref(storage, `profileImages/${newUser.email}`);
         await uploadBytes(storageRef, profileImage);
         profileImageUrl = await getDownloadURL(storageRef);
       }
-
+  
       const newUserData = {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
@@ -115,9 +120,9 @@ const UserManagement = () => {
         description: newUser.description,
         uid: user.uid,
       };
-
-      await addDoc(collection(db, 'users'), newUserData);
-
+  
+      await setDoc(doc(db, 'users', user.uid), newUserData);
+  
       setUsers([...users, { id: user.uid, ...newUserData, location: newUser.location }]);
       resetNewUser();
       setShowAddUserModal(false);
@@ -144,15 +149,19 @@ const UserManagement = () => {
     setProfileImagePreview(null);
   };
 
-  const handleDeleteUser = async (userId) => {
-    await deleteDoc(doc(db, 'users', userId));
-    setUsers(users.filter((user) => user.id !== userId));
-  };
-
   const handleRoleChange = async (userId, newRole) => {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { role: newRole });
     setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)));
+  };
+
+  const handleRoleFilterChange = (role) => {
+    setSelectedRole(role);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    await deleteDoc(doc(db, 'users', userId));
+    setUsers(users.filter((user) => user.id !== userId));
   };
 
   const openEditUserModal = (user) => {
@@ -193,17 +202,17 @@ const UserManagement = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setProfileImage(file);
-    setProfileImagePreview(URL.createObjectURL(file));
-  };
-
   const handleEditTagRemove = (tagToRemove) => {
     setEditingUser({
       ...editingUser,
       tags: editingUser.tags.filter((tag) => tag !== tagToRemove),
     });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setProfileImage(file);
+    setProfileImagePreview(URL.createObjectURL(file));
   };
 
   return (
@@ -214,7 +223,7 @@ const UserManagement = () => {
           type="text"
           placeholder="Buscar en el directorio..."
           value={searchTerm}
-          onChange={handleSearchChange}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded-lg px-4 py-2 w-1/3"
         />
         <div className="flex items-center space-x-4">
@@ -228,13 +237,21 @@ const UserManagement = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Directorio</h2>
-        <button
-          className="bg-orange-500 text-white py-2 px-4 rounded flex items-center hover:bg-orange-600"
-          onClick={() => setShowAddUserModal(true)}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Añadir Usuario
-        </button>
+        <div className="flex space-x-4">
+          <button
+            className="bg-orange-500 text-white py-2 px-4 rounded flex items-center hover:bg-orange-600"
+            onClick={() => setShowAddUserModal(true)}
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Añadir Usuario
+          </button>
+          <button
+            className="bg-green-500 text-white py-2 px-4 rounded flex items-center hover:bg-green-600"
+            onClick={exportToExcel}
+          >
+            Exportar a Excel
+          </button>
+        </div>
       </div>
 
       <div className="flex space-x-4 mb-4">
@@ -249,6 +266,7 @@ const UserManagement = () => {
         ))}
       </div>
 
+      {/* Tabla de usuarios */}
       <table className="min-w-full bg-white border rounded-lg">
         <thead>
           <tr>

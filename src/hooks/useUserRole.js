@@ -5,28 +5,34 @@ import { doc, getDoc } from 'firebase/firestore';
 
 const useUserRole = () => {
   const [userRole, setUserRole] = useState(null);
-  const [adminType, setAdminType] = useState(null);
+  const [adminType, setAdminType] = useState(null); // Si deseas diferenciar entre 'admin' y 'principal'
   const [loadingRole, setLoadingRole] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setLoadingRole(true); // Inicia el estado de carga al verificar el usuario
+      setLoadingRole(true); // Indica que se está verificando el rol del usuario
       if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserRole(docSnap.data().role);
-          setAdminType(docSnap.data().adminType || null);
-        } else {
-          console.error("El documento del usuario no existe.");
-          setUserRole(null); // O establece un rol predeterminado
-          setAdminType(null);
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserRole(userData.role); // Asigna el rol, ej. 'admin', 'moderador', 'user'
+            setAdminType(userData.adminType || null); // Si tienes un tipo específico para admin
+          } else {
+            console.error("El documento del usuario no existe.");
+            setUserRole(null);
+            setAdminType(null);
+          }
+        } catch (error) {
+          console.error("Error al obtener el rol del usuario:", error);
         }
       } else {
         setUserRole(null);
         setAdminType(null);
       }
-      setLoadingRole(false); // Finaliza el estado de carga
+      setLoadingRole(false); // Indica que la verificación ha terminado
     });
 
     return () => unsubscribe(); // Limpia la suscripción

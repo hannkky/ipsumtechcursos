@@ -13,28 +13,55 @@ const Sidebar = () => {
         {/* Opciones del usuario normal */}
         {userRole === 'user' && (
           <>
-            <NavLink to="/dashboard" className="hover:bg-blue-700 p-2 rounded flex items-center">
+            <NavLink to="/user/dashboard" className="hover:bg-blue-700 p-2 rounded flex items-center">
               <HomeIcon className="h-5 w-5 mr-2" />
               Inicio
             </NavLink>
-            <NavLink to="/calendar" className="hover:bg-blue-700 p-2 rounded flex items-center">
+            <NavLink to="/user/calendar" className="hover:bg-blue-700 p-2 rounded flex items-center">
               <CalendarIcon className="h-5 w-5 mr-2" />
               Calendario
             </NavLink>
-            <NavLink to="/courses" className="hover:bg-blue-700 p-2 rounded flex items-center">
+            <NavLink to="/user/courses" className="hover:bg-blue-700 p-2 rounded flex items-center">
               <AcademicCapIcon className="h-5 w-5 mr-2" />
               Cursos
             </NavLink>
-            <NavLink to="/certifications" className="hover:bg-blue-700 p-2 rounded flex items-center">
+            <NavLink to="/user/certifications" className="hover:bg-blue-700 p-2 rounded flex items-center">
               <BadgeCheckIcon className="h-5 w-5 mr-2" />
               Certificados
             </NavLink>
-            <NavLink to="/profile" className="hover:bg-blue-700 p-2 rounded flex items-center">
+            <NavLink to="/user/profile" className="hover:bg-blue-700 p-2 rounded flex items-center">
               <UserIcon className="h-5 w-5 mr-2" />
               Perfil
             </NavLink>
           </>
         )}
+
+        {/* Opciones del moderador */}
+{userRole === 'moderador' && (
+  <>
+    <NavLink to="/moderador-dashboard" className="hover:bg-blue-700 p-2 rounded flex items-center">
+      <HomeIcon className="h-5 w-5 mr-2" />
+      Panel de Moderador
+    </NavLink>
+    <NavLink to="/moderador/courses" className="hover:bg-blue-700 p-2 rounded flex items-center">
+      <AcademicCapIcon className="h-5 w-5 mr-2" />
+      Gestión de Cursos
+    </NavLink>
+    <NavLink to="/moderador/announcements" className="hover:bg-blue-700 p-2 rounded flex items-center">
+      <SpeakerphoneIcon className="h-5 w-5 mr-2" />
+      Anuncios
+    </NavLink>
+    <NavLink to="/moderador/events" className="hover:bg-blue-700 p-2 rounded flex items-center">
+      <ClipboardListIcon className="h-5 w-5 mr-2" />
+      Eventos
+    </NavLink>
+    <NavLink to="/moderador/profile" className="hover:bg-blue-700 p-2 rounded flex items-center">
+      <UserIcon className="h-5 w-5 mr-2" />
+      Perfil
+    </NavLink>
+  </>
+)}
+
 
         {/* Opciones del administrador */}
         {(userRole === 'admin' || userRole === 'principal') && (
@@ -63,7 +90,7 @@ const Sidebar = () => {
         )}
 
         {/* Cerrar Sesión */}
-        <NavLink to="/logout" className="hover:bg-blue-700 p-2 rounded flex items-center mt-6">
+        <NavLink to="/" className="hover:bg-blue-700 p-2 rounded flex items-center mt-6">
           <LogoutIcon className="h-5 w-5 mr-2" />
           Cerrar Sesión
         </NavLink>

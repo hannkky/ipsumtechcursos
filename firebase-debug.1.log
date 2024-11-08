@@ -1,0 +1,117 @@
+[debug] [2024-11-07T00:12:28.092Z] ----------------------------------------------------------------------
+[debug] [2024-11-07T00:12:28.096Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\hannk\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2024-11-07T00:12:28.097Z] CLI Version:   13.24.1
+[debug] [2024-11-07T00:12:28.097Z] Platform:      win32
+[debug] [2024-11-07T00:12:28.097Z] Node Version:  v21.4.0
+[debug] [2024-11-07T00:12:28.097Z] Time:          Wed Nov 06 2024 18:12:28 GMT-0600 (hora estándar central)
+[debug] [2024-11-07T00:12:28.097Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-11-07T00:12:28.107Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-11-07T00:12:28.108Z] > authorizing via signed-in user (carlosramos261104@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\hannk\Documents\ipsumtechcursos
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2024-11-07T00:12:44.649Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:44.649Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:44.651Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=100
+[debug] [2024-11-07T00:12:46.173Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2024-11-07T00:12:46.173Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] i  Using project ipsumlearning-addf8 (ipsumlearning) 
+[info] 
+=== Functions Setup
+[debug] [2024-11-07T00:12:47.067Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-11-07T00:12:47.067Z] > authorizing via signed-in user (carlosramos261104@gmail.com)
+[debug] [2024-11-07T00:12:47.067Z] [iam] checking project ipsumlearning-addf8 for permissions ["firebase.projects.get"]
+[debug] [2024-11-07T00:12:47.067Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:47.068Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:47.068Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions [none]
+[debug] [2024-11-07T00:12:47.068Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions x-goog-quota-user=projects/ipsumlearning-addf8
+[debug] [2024-11-07T00:12:47.068Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2024-11-07T00:12:47.548Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions 200
+[debug] [2024-11-07T00:12:47.548Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2024-11-07T00:12:47.549Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:47.549Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:47.549Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:47.549Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:12:47.549Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/cloudfunctions.googleapis.com [none]
+[debug] [2024-11-07T00:12:47.549Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/ipsumlearning-addf8
+[debug] [2024-11-07T00:12:47.550Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/runtimeconfig.googleapis.com [none]
+[debug] [2024-11-07T00:12:47.550Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/ipsumlearning-addf8
+[debug] [2024-11-07T00:12:48.505Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/cloudfunctions.googleapis.com 200
+[debug] [2024-11-07T00:12:48.505Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2024-11-07T00:12:48.811Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/runtimeconfig.googleapis.com 200
+[debug] [2024-11-07T00:12:48.811Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/ipsumlearning-addf8/services/runtimeconfig.googleapis.com [omitted]
+[info] Let's create a new codebase for your functions.
+[info] A directory corresponding to the codebase will be created in your project
+[info] with sample code pre-configured.
+
+[info] See https://firebase.google.com/docs/functions/organize-functions for
+[info] more information on organizing your functions using codebases.
+
+[info] Functions can be deployed with firebase deploy.
+
+[info] +  Wrote functions/package.json 
+[info] +  Wrote functions/.eslintrc.js 
+[info] +  Wrote functions/index.js 
+[info] +  Wrote functions/.gitignore 
+[info] 
+[info] i  Writing configuration info to firebase.json... 
+[info] i  Writing project information to .firebaserc... 
+[info] 
+[info] +  Firebase initialization complete! 
+[debug] [2024-11-07T00:15:33.284Z] Error: Timed out.
+    at Timeout._onTimeout (C:\Users\hannk\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:268:49)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2024-11-07T00:16:30.867Z] ----------------------------------------------------------------------
+[debug] [2024-11-07T00:16:30.870Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\hannk\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2024-11-07T00:16:30.871Z] CLI Version:   13.24.1
+[debug] [2024-11-07T00:16:30.871Z] Platform:      win32
+[debug] [2024-11-07T00:16:30.871Z] Node Version:  v21.4.0
+[debug] [2024-11-07T00:16:30.871Z] Time:          Wed Nov 06 2024 18:16:30 GMT-0600 (hora estándar central)
+[debug] [2024-11-07T00:16:30.871Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-11-07T00:16:30.949Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-11-07T00:16:30.949Z] > authorizing via signed-in user (carlosramos261104@gmail.com)
+[debug] [2024-11-07T00:16:30.950Z] [iam] checking project ipsumlearning-addf8 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2024-11-07T00:16:30.951Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:16:30.951Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:16:30.952Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions [none]
+[debug] [2024-11-07T00:16:30.952Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions x-goog-quota-user=projects/ipsumlearning-addf8
+[debug] [2024-11-07T00:16:30.952Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2024-11-07T00:16:31.782Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions 200
+[debug] [2024-11-07T00:16:31.782Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ipsumlearning-addf8:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2024-11-07T00:16:31.783Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:16:31.783Z] Checked if tokens are valid: true, expires at: 1730941382938
+[debug] [2024-11-07T00:16:31.783Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/ipsumlearning-addf8/serviceAccounts/ipsumlearning-addf8@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2024-11-07T00:16:31.783Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/ipsumlearning-addf8/serviceAccounts/ipsumlearning-addf8@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2024-11-07T00:16:34.126Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/ipsumlearning-addf8/serviceAccounts/ipsumlearning-addf8@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2024-11-07T00:16:34.126Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/ipsumlearning-addf8/serviceAccounts/ipsumlearning-addf8@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'ipsumlearning-addf8'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run lint
+[debug] [2024-11-07T00:16:49.147Z] Error: Timed out.
+    at Timeout._onTimeout (C:\Users\hannk\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:268:49)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
+[error] 
+[error] Error: An unexpected error has occurred.

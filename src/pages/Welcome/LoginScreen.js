@@ -24,38 +24,50 @@ const LoginPage = () => {
       setShowModal(true);
       return;
     }
-
+  
     if (!validateEmail(email)) {
       setModalMessage('El correo debe terminar con @ipsumtechnology.co o @ipsumtechnology.mx');
       setShowModal(true);
       return;
     }
-
+  
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password); // Método modificado
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log("User logged in:", user.uid);
-
-      // Obtener el rol del usuario desde Firestore
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+  
+      // Verificar que el usuario autenticado existe en Firestore
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+  
       if (userDoc.exists()) {
         const userData = userDoc.data();
         console.log("User data:", userData);
-        
+  
+        // Verificar si el rol está presente en los datos
+        const userRole = userData.role;
+        if (!userRole) {
+          console.error("No se encontró el campo 'role' en los datos del usuario");
+          setModalMessage('No se encontró el rol del usuario.');
+          setShowModal(true);
+          return;
+        }
+  
         // Redirigir al usuario según su rol
-        if (userData.role === 'admin') {
+        if (userRole === 'admin') {
           navigate('/admin-dashboard');
-        } else if (userData.role === 'moderador') {
+        } else if (userRole === 'moderador') {
           navigate('/moderador-dashboard');
         } else {
-          navigate('/dashboard');
+          navigate('/user/dashboard');
         }
       } else {
-        setModalMessage('No se encontró el rol del usuario.');
+        console.error("El documento del usuario no existe en Firestore.");
+        setModalMessage('No se encontró el documento del usuario en Firestore.');
         setShowModal(true);
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Error al iniciar sesión:", err);
       setModalMessage('Email o contraseña incorrecta.');
       setShowModal(true);
     }
